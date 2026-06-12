@@ -187,12 +187,15 @@ function MetaTag({ k, v }) {
 function AdaptiveImageSlot({ id, box = 300, ratio = 0.8, placeholder = '拖入图片',
   sticker, rotate = 0, accent = 'var(--acl-paper)' }) {
   const key = 'acl-slot-' + id;
-  const [data, setData] = React.useState(null);
+  const readStored = () => {
+    try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+  };
+  const [data, setData] = React.useState(readStored);
   const [drag, setDrag] = React.useState(false);
   const inputRef = React.useRef(null);
 
   React.useEffect(() => {
-    try { const s = localStorage.getItem(key); if (s) setData(JSON.parse(s)); } catch (e) {}
+    setData(readStored());
   }, [key]);
 
   const save = (d) => {
@@ -210,7 +213,8 @@ function AdaptiveImageSlot({ id, box = 300, ratio = 0.8, placeholder = '拖入�
     r.readAsDataURL(file);
   };
 
-  const aspect = data ? data.w / data.h : ratio;
+  const currentData = data || readStored();
+  const aspect = currentData ? currentData.w / currentData.h : ratio;
   let w, h;
   if (aspect >= 1) { w = box; h = Math.round(box / aspect); }
   else { h = box; w = Math.round(box * aspect); }
@@ -223,15 +227,15 @@ function AdaptiveImageSlot({ id, box = 300, ratio = 0.8, placeholder = '拖入�
          onDrop={(e) => { e.preventDefault(); setDrag(false);
            readFile(e.dataTransfer.files && e.dataTransfer.files[0]); }}>
       <div className="acl-slot__frame" style={{ borderColor: accent }}>
-        {data
-          ? <img className="acl-slot__img" src={data.src} alt="" />
+        {currentData
+          ? <img className="acl-slot__img" src={currentData.src} alt="" />
           : (
             <div className="acl-slot__empty" onClick={() => inputRef.current && inputRef.current.click()}>
               <div className="acl-slot__plus">+</div>
               <div className="acl-slot__cap">{placeholder}</div>
             </div>
           )}
-        {data && <div className="acl-slot__hint" onClick={() => save(null)}>清除 ✕</div>}
+        {currentData && <div className="acl-slot__hint" onClick={() => save(null)}>清除 ✕</div>}
       </div>
       {sticker && (
         <div className="acl-slot__sticker">

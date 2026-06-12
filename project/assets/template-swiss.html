@@ -1696,11 +1696,12 @@ go(Number.isFinite(initialSlide) ? initialSlide : 0, {animate:false});
     }
   };
 
-  window.__exportDeckHtml = function(){
+  window.__exportDeckHtml = async function(){
     window.__syncDeckPageNumbers?.();
     window.__flushEditableTextState?.();
     window.__syncDeckViewModelFromDom?.();
     window.__renderRuntimeSlides?.();
+    await nextFrame();
     window.__initEditableText?.(document);
     const blob = new Blob([buildCleanExportHtml()], {type: 'text/html;charset=utf-8'});
     const url = URL.createObjectURL(blob);

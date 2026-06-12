@@ -269,9 +269,14 @@ function renderImportedThemeSlide(slide, values = {}) {
   const entry = entriesByKey.get(root.dataset.pageKey);
   if (!entry?.Component) return false;
   const defaults = readJson(root.dataset.propDefaults, {});
+  const slideId = slide.dataset.vmSlideId;
+  const sourceProps = window.__deckViewModel?.model?.slides?.find(item => item.id === slideId)?.props || {};
+  const savedProps = window.__deckViewModel?.getState?.().props?.[slideId] || {};
   const baseProps = {
     ...(entry.defaultProps || {}),
     ...defaults,
+    ...sourceProps,
+    ...savedProps,
     ...(values || {}),
   };
   const componentProps = withMediaHostProps(slide, stripRuntimeProps(baseProps));

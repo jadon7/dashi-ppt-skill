@@ -207,12 +207,15 @@ export function KxStatusBar({ wordmark = 'AI CAPITAL LAB', center, right, menu }
 // -- Adaptive image slot (self-contained, localStorage, ratio-aware) ------
 export function KxImageSlot({ id, placeholder = 'DROP IMAGE', badge, minRatio = 0.6, maxRatio = 2.4, style }) {
   const key = 'kx-img-' + id;
-  const [data, setData] = React.useState(null);
+  const readStored = () => {
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+  };
+  const [data, setData] = React.useState(readStored);
   const [drag, setDrag] = React.useState(false);
   const inputRef = React.useRef(null);
 
   React.useEffect(() => {
-    try { const raw = localStorage.getItem(key); if (raw) setData(JSON.parse(raw)); } catch (e) {}
+    setData(readStored());
   }, [key]);
 
   const accept = (file) => {
@@ -233,7 +236,8 @@ export function KxImageSlot({ id, placeholder = 'DROP IMAGE', badge, minRatio = 
   };
 
   // adaptive aspect-ratio: container follows the image's natural ratio (clamped)
-  const ar = data ? data.ratio : 1.6;
+  const currentData = data || readStored();
+  const ar = currentData ? currentData.ratio : 1.6;
   return h('div', {
     className: 'kx-imgslot' + (drag ? ' kx-drag' : ''),
     style: { aspectRatio: String(ar), ...style },
@@ -242,7 +246,7 @@ export function KxImageSlot({ id, placeholder = 'DROP IMAGE', badge, minRatio = 
     onDragLeave: () => setDrag(false),
     onDrop: (e) => { e.preventDefault(); setDrag(false); accept(e.dataTransfer.files[0]); },
   },
-    data ? h('img', { src: data.src, alt: '' })
+    currentData ? h('img', { src: currentData.src, alt: '' })
          : h('div', { className: 'kx-slot-ph' }, placeholder),
     badge ? h('div', { className: 'kx-slot-badge' }, badge) : null,
     h('input', {
